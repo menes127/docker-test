@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+
+  db:
+    container_name: mysql
+    image: mysql:5.5
+    restart: always
+    volumes:
+      - ${DB_VOL}:/var/lib/mysql
+    # if using mysql-data volume (No need to initialize DB_VOL in .env file) Comment above line - ${DB_VOL}:/var/lib/mysql
+    # Instead uncomment 1,2 below NOTE: This persistent volume database will be deleted if you use docker volume prune
+    #1- mysql-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: xxxx
+      MYSQL_DATABASE: xxxx
+      MYSQL_USER: xxxx
+      MYSQL_PASSWORD: xxxx
+    ports:
+      - ${DB_PORT}:3306
+    networks:
+      service1_net:
+        ipv4_address: 172.18.0.2
+
+  myphp:
+    container_name: myphp
+    image: my/myphp:latest
+    restart: always
+    depends_on:
+      - db
+    volumes:
+    - ${APP_VOL}:/var/www/html/php_project
+    environment:
+      MY_ENVIRONMENT: DEVELOPMENT
+    ports:
+    - ${APP_PORT}:80
+    networks:
+      service1_net:
+        ipv4_address: 172.18.0.3
+
+networks:
+  service1_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.18.0.0/24
+
+#2 volumes:
+#2   mysql-data:
+#2     driver: local
